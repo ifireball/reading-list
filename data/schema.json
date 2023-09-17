@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://korren.org/reading-list/schema",
+    "type": "object",
+    "properties": {
+        "title": {
+            "type": "string",
+            "description": "The title of the reading list item"
+        },
+        "kind": {
+            "description": "Reading list item kind",
+            "enum": ["book"]
+        },
+        "status": {
+            "description": "Reading status",
+            "enum": ["reading", "read", "to read"]
+        },
+        "url": {
+            "description": "Reading list item URL",
+            "type": "string",
+            "format": "uri"
+        },
+        "tags": {
+            "description": "Classification tags",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "notes": {
+            "description": "My additional notes",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "required": ["title", "kind", "status"]
+}
