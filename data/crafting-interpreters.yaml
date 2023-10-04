@@ -2,6 +2,6 @@ title: Crafting interpreters
 kind: book
 status: reading
 url: https://craftinginterpreters.com
-tags: [ "programming languages", "interpreters", "compilers" ]
+tags: [ "programming", "programming languages", "interpreters", "compilers" ]
 notes: |
   Fascinating book bout how to write language interpreters.
