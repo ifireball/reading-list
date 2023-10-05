@@ -1,0 +1,8 @@
+title: JupyterLab Extension Tutorial
+kind: Online Tutorial
+status: to read
+url: https://jupyterlab.readthedocs.io/en/stable/extension/extension_tutorial.html
+tags: [ "programming", "python", "jupyter"]
+notes: |
+  I want to learn to write JupyterLab extensions because its an interesting
+  platform to build Python and non-Python development tools on top of.
