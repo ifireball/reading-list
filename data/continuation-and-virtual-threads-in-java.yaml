@@ -1,0 +1,8 @@
+title: "Continuation and Virtual Threads in Java: A New Concurrency Paradigm"
+kind: Blog Post
+status: to read
+url: https://levelup.gitconnected.com/continuation-and-virtual-threads-in-java-a-new-concurrency-paradigm-8cac3903c46a
+tags: [ "programming", "java", "concurrency", "interpreters" ]
+notes:
+  Further explanation about how "Project Loom" "Virtual Threads" are implemented
+  at the JVM level.
