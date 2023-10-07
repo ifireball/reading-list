@@ -1,11 +1,15 @@
+import { loadDataAsProps } from "../lib/load-data"
+
 export async function getStaticProps() {
-    const data = ['a', 'b', 'c']
-    return { props: { data }}
+    return await loadDataAsProps()
 }
 
 export default function Page({ data }) {
     console.log(data)
     return <>
         <h1>My reading list</h1>
+        <ul>
+            {data.map((item, idx) => <li key={idx}>{item.toString()}</li>)}
+        </ul>
     </>
 }
