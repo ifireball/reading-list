@@ -9,7 +9,7 @@ export default function Page({ data }) {
     return <>
         <h1>My reading list</h1>
         <ul>
-            {data.map((item, idx) => <li key={idx}>{item.toString()}</li>)}
+            {data.map((item, idx) => <li key={idx}>{item.title}</li>)}
         </ul>
     </>
 }
