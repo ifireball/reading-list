@@ -3,7 +3,7 @@ kind: Blog Post
 status: to read
 url: https://levelup.gitconnected.com/project-loom-and-virtual-threads-in-java-9569918a7afd
 tags: [ "programming", "java", "concurrency" ]
-notes:
+notes: |
   Java had so far avoided adopting async/await syntax, and it seems it may
   adopt "virtual threads" instead. This points explains what those are.
 
