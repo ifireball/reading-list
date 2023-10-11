@@ -65,6 +65,6 @@ export function Column({ title, items }) {
 export function Item({ title, url, notes }) {
     return <article>
         <h3><a href={url}>{title}</a></h3>
-        <p>{notes}</p>
+        <div dangerouslySetInnerHTML={{__html: notes}} />
     </article>
 }
