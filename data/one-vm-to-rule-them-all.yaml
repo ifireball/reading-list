@@ -1,0 +1,9 @@
+title: One VM to Rule Them All
+kind: Academic Article
+status: read
+url: http://lafo.ssw.uni-linz.ac.at/papers/2013_Onward_OneVMToRuleThemAll.pdf
+tags: [ "programming", "interpreters", "Java", "GraalVM", "Truffle" ]
+notes: |
+  An article about the ideas and concepts that underlay Truffle, the generic
+  library for writing language interpreters, that is shipped with (And depends
+  on) the GraalVM Java VM.
