@@ -14,11 +14,12 @@ export default function Columns({ data }) {
 export function Column({ title, items }) {
     return <section className="root">
         <h2>{title}</h2>
-        {items.map((item) => <Item key={item.key} {...item} />)}
+        {items.map((item) => <Item key={item.key} item={item} />)}
     </section>
 }
 
-export function Item({ title, url, notes }) {
+export function Item({ item }) {
+    const { title, url, notes } = item
     return <article>
         <h3><a href={url}>{title}</a></h3>
         <div dangerouslySetInnerHTML={{__html: notes}} />

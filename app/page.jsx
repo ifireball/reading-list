@@ -1,11 +1,8 @@
 import { loadData } from "../lib/load-data"
 import Columns from "components/columns"
 
-export async function getStaticProps() {
-    return {props: {data: await loadData()}}
-}
-
-export default function Page({ data }) {
+export default async function Page() {
+    const data = await loadData()
     console.log(data)
     const columns = ["To Read", "Reading", "Read"]
     return <>
