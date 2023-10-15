@@ -1,8 +1,8 @@
-import { loadDataAsProps } from "../lib/load-data"
+import { loadData } from "../lib/load-data"
 import Columns from "components/columns"
 
 export async function getStaticProps() {
-    return await loadDataAsProps()
+    return {props: {data: await loadData()}}
 }
 
 export default function Page({ data }) {
