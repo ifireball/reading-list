@@ -6,11 +6,6 @@ export default async function Page() {
     console.log(data)
     const columns = ["To Read", "Reading", "Read"]
     return <>
-        <header>
-            <h1>My reading list</h1>
-        </header>
-        <main>
-            <Columns data={data} />
-        </main>
+        <Columns data={data} />
     </>
 }

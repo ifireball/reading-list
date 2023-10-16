@@ -1,0 +1,31 @@
+.body {
+    background: black;
+    margin: 0;
+    display: grid;
+    position: absolute;
+    grid-template-rows: 1fr 8fr 1fr;
+    top: 0;
+    bottom: 0;
+}
+.header {
+    background: white;
+    overflow: hidden;
+    position: relative;
+    padding: 0 1em;
+    > h1 {
+        position: absolute;
+        bottom: 0;
+    }
+}
+.main {
+    background: white;
+    overflow: scroll;
+    padding: 0 0.5em;
+}
+.footer {
+    color: white;
+    background: black;
+    text-align: center;
+    overflow: hidden;
+    border-top: solid 0.5em white;
+}
