@@ -1,4 +1,5 @@
 import css from "./layout.module.scss"
+import Image from "next/image"
 
 export const metadata = {
   title: 'My reading list',
@@ -10,7 +11,16 @@ export default function RootLayout({ children }) {
     <html lang="en">
         <body className={css.body}>
             <header className={css.header}>
-                <h1 className={css.h}>My reading list</h1>
+                <h1>My reading list</h1>
+                <a href="https://github.com/ifireball/reading-list">
+                    <Image
+                        src="/github-mark.svg"
+                        alt="GitHub"
+                        title="Fork me on GitHub"
+                        width={40}
+                        height={40}
+                    />
+                </a>
             </header>
             <main className={css.main}>{children}</main>
             <footer className={css.footer}>

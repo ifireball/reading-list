@@ -16,6 +16,15 @@
         position: absolute;
         bottom: 0;
     }
+    > a {
+        position: absolute;
+        bottom: 1em;
+        right: 1em;
+        > img {
+            width: 3.5em;
+            height: 3.5em;
+        }
+    }
 }
 .main {
     background: white;
