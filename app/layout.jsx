@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
                 <h1>My reading list</h1>
                 <a href="https://github.com/ifireball/reading-list">
                     <Image
-                        src="/github-mark.svg"
+                        src="/reading-list/github-mark.svg"
                         alt="GitHub"
                         title="Fork me on GitHub"
                         width={40}
