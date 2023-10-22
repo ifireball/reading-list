@@ -1,0 +1,7 @@
+title: We built the fastest CI in the world. It failed. Here’s what we learned
+kind: Blog Post
+status: read
+url: https://earthly.dev/blog/shutting-down-earthly-ci/
+tags: [ "programming", "business", "product management" ]
+notes: |
+  A story of building the wrong product, and lessons learned in the process
