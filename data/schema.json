@@ -9,7 +9,10 @@
         },
         "kind": {
             "description": "Reading list item kind",
-            "enum": ["book"]
+            "enum": [
+                "Book", "Software Package", "Blog Post", "Online Tutorial",
+                "Academic Article"
+            ]
         },
         "status": {
             "description": "Reading status",
@@ -33,5 +36,5 @@
         }
     },
     "additionalProperties": false,
-    "required": ["title", "kind", "status"]
+    "required": ["title", "kind", "status", "url", "tags", "notes"]
 }
