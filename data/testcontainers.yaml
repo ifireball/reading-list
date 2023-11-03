@@ -1,0 +1,10 @@
+title: Testcontainers
+utl: https://testcontainers.com/
+kind: Software Package
+tags: [ "Programming", "Testing", "Work Related" ]
+notes: |
+  A generic multi-language framework for using
+  containers as test fixtures. This is
+  something we write for ourselves in
+  segment-bridge but perhaps we could adopt
+  this.
