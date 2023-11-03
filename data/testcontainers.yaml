@@ -2,7 +2,7 @@ title: Testcontainers
 url: https://testcontainers.com/
 kind: Software Package
 status: to read
-tags: [ "Programming", "Testing", "Work Related" ]
+tags: [ "programming", "testing", "work related" ]
 notes: |
   A generic multi-language framework for using
   containers as test fixtures. This is
