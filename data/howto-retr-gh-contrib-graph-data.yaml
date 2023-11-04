@@ -2,7 +2,7 @@ title: How to retrieve contribution graph data from the GitHub API
 kind: Blog Post
 status: read
 url: https://medium.com/@yuichkun/how-to-retrieve-contribution-graph-data-from-the-github-api-dc3a151b4af
-tags: [ "programming", "GitHub", "GraphQL", "am-I-green" ]
+tags: [ "programming", "github", "graphql", "am i green" ]
 notes:
   Hot to retrieve the usage data that is used to draw the GitHub "green matrix"
   by using the GitHub GraphQL API.
