@@ -1,0 +1,7 @@
+title: Grafana Dash Gen
+url: https://github.com/uber/grafana-dash-gen
+kind: Software Package
+status: to read
+tags: [ "programming", "o11y", "work related", "grafana" ]
+notes:
+  A JavaScript library for making the creation of Grafana dashboards easier
