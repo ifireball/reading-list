@@ -1,6 +1,10 @@
 import { loadData } from "lib/load-data"
 import { loadTagList, loadTags } from "lib/tags"
+
+import css from "../../layout.module.scss"
+
 import Columns from "components/columns"
+import Filter from "components/filter"
 
 export async function generateStaticParams() {
     const tagList = await loadTagList()
@@ -9,7 +13,11 @@ export async function generateStaticParams() {
 
 export default async function Page({params}) {
     const tags = await loadTags()
-    const data = tags.get(decodeURI(params.tag))
+    const tag = decodeURI(params.tag)
+    const data = tags.get(tag)
 
-    return <Columns data={data} />
+    return <>
+        <nav className={css.nav}><Filter tag={tag}/></nav>
+        <main className={css.main}><Columns data={data}/></main>
+    </>
 }
