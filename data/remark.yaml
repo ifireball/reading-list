@@ -1,0 +1,7 @@
+title: Remark
+status: read
+kind: Software Package
+url: https://github.com/remarkjs/remark
+tags: [ "javascript", "markdown", "programming" ]
+notes: |
+  The JS markdown rendering library used by this very site.
