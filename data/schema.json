@@ -11,7 +11,7 @@
             "description": "Reading list item kind",
             "enum": [
                 "Book", "Software Package", "Blog Post", "Online Tutorial",
-                "Academic Article"
+                "Academic Article", "Online Service"
             ]
         },
         "status": {
