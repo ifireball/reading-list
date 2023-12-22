@@ -1,0 +1,9 @@
+title: Crossplane
+status: to read
+kind: Software Package
+url: https://www.crossplane.io/
+tags: [ "work related", "kubernetes", "iaas" ]
+notes: |
+  An infrastructure configuration service, perhaps a bit like Terraform, that
+  works as a Kubernetes controller with the infrastructure requirements
+  specified as K8s resources.
