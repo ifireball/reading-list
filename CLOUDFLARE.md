@@ -30,8 +30,8 @@ Add the following secrets to your GitHub repository (**Settings** > **Secrets an
 
 The deployment is split into two workflows to securely support Pull Requests from forks:
 
-- **Build Workflow (`build.yml`):** Runs on every push and PR. It builds the site and uploads the static files as an artifact.
-- **Deploy Workflow (`deploy.yml`):** Runs only when the Build workflow completes successfully. It runs in the repository's context (always using the `main` branch version of the workflow and `wrangler.toml`), giving it safe access to the Cloudflare secrets.
+- **Build Workflow (`build.yml`):** Runs on every push and PR. It builds the site and uploads the static files and the `cloudflare/worker.js` as artifacts.
+- **Deploy Workflow (`deploy.yml`):** Runs only when the Build workflow completes successfully. It runs in the repository's context (always using the `main` branch version of the workflow and `cloudflare/wrangler.toml`), giving it safe access to the Cloudflare secrets.
 
 ### PR Previews and Security
 
@@ -39,4 +39,4 @@ To prevent malicious code execution, PRs are only deployed if:
 1.  The PR author has **write permissions** to the repository.
 2.  OR, a user with write permissions adds the **allow-deploy** label to the PR.
 
-Every push to `main` is automatically deployed to production. PR previews are deployed to unique workers named `reading-list-pr-<number>`.
+Every push to `main` is automatically deployed to production. PR previews are deployed to unique workers named `reading-list-pr-<number>`. The workflow also creates GitHub Deployments and updates Commit Statuses and PR comments with the deployment link.

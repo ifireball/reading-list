@@ -25,19 +25,29 @@ jobs:
       - name: Build with Next.js
         run: npx next build
 
-      - name: Save PR number
+      - name: Save PR info
         if: github.event_name == 'pull_request'
-        run: echo ${{ github.event.number }} > pr_number.txt
+        run: |
+          echo ${{ github.event.number }} > pr_number.txt
+          echo ${{ github.event.pull_request.head.sha }} > pr_sha.txt
 
-      - name: Upload artifact
+      - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
           name: site-build
           path: out/
+
+      - name: Upload worker artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-src
+          path: cloudflare/worker.js
 
       - name: Upload PR info
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: pr-info
-          path: pr_number.txt
+          path: |
+            pr_number.txt
+            pr_sha.txt
