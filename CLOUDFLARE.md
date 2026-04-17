@@ -32,3 +32,5 @@ The deployment is handled by the `.github/workflows/cloudflare.yml` workflow.
 
 - **Production:** Every push to the `main` branch is automatically deployed to production.
 - **Previews:** Every Pull Request targeting `main` generates a preview deployment. Cloudflare will provide a unique URL for each preview, which will be added as a comment or status check in the PR.
+
+**Note:** If the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are not set in the GitHub repository, the deployment step will be skipped with a warning. This prevents the CI from failing on forks or before the initial setup is complete.
