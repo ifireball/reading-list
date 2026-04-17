@@ -33,8 +33,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: site-build
-          path: |
-            out/
-            wrangler.toml
-            worker.js
-            pr_number.txt
+          path: out/
+
+      - name: Upload PR info
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-info
+          path: pr_number.txt

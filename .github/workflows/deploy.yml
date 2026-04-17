@@ -14,11 +14,34 @@ jobs:
       contents: read
       deployments: write
       pull-requests: write
+      issues: write
     steps:
-      - name: Download artifact
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Create deployment directory
+        run: mkdir -p cloudflare_deployment
+
+      - name: Move trusted config
+        run: |
+          cp wrangler.toml worker.js cloudflare_deployment/
+
+      - name: Download site artifact
         uses: actions/download-artifact@v4
         with:
           name: site-build
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: cloudflare_deployment/out
+
+      - name: Download PR info artifact
+        id: download_pr_info
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: pr-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -27,43 +50,108 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Determine environment and worker name
-        id: env_info
-        run: |
-          if [ -f pr_number.txt ]; then
-            PR_NUM=$(cat pr_number.txt)
-            echo "env=preview" >> $GITHUB_OUTPUT
-            echo "worker_name=reading-list-pr-$PR_NUM" >> $GITHUB_OUTPUT
-            echo "is_pr=true" >> $GITHUB_OUTPUT
-            echo "pr_number=$PR_NUM" >> $GITHUB_OUTPUT
-          else
-            echo "env=production" >> $GITHUB_OUTPUT
-            echo "worker_name=reading-list" >> $GITHUB_OUTPUT
-            echo "is_pr=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Deploy to Cloudflare Workers
-        id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --name=${{ steps.env_info.outputs.worker_name }}
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Comment PR
-        if: steps.env_info.outputs.is_pr == 'true'
+      - name: Process Deployment
+        id: deploy_process
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prNumber = "${{ steps.env_info.outputs.pr_number }}";
-            const deploymentUrl = "${{ steps.deploy.outputs.deployment-url }}";
-            github.rest.issues.createComment({
+            const fs = require('fs');
+
+            let prNumber = null;
+            if (fs.existsSync('pr_number.txt')) {
+              prNumber = fs.readFileSync('pr_number.txt', 'utf8').trim();
+            }
+
+            const isPR = !!prNumber;
+            const actor = context.payload.workflow_run.actor.login;
+            let authorized = !isPR;
+            let reason = "";
+
+            if (isPR) {
+              // Check author permissions
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: actor,
+              });
+
+              const hasWriteAccess = ['admin', 'write'].includes(permission.permission);
+
+              // Check for "allow-deploy" label
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: parseInt(prNumber),
+              });
+
+              const hasLabel = pr.labels.some(l => l.name === 'allow-deploy');
+
+              authorized = hasWriteAccess || hasLabel;
+              if (!authorized) {
+                reason = `Deployment is pending authorization. A user with write permissions must add the **allow-deploy** label to this PR. ⚠️ Use caution when authorizing PRs from external contributors.`;
+              }
+            }
+
+            core.setOutput('authorized', authorized);
+            core.setOutput('is_pr', isPR);
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('worker_name', isPR ? `reading-list-pr-${prNumber}` : 'reading-list');
+            core.setOutput('reason', reason);
+
+      - name: Deploy to Cloudflare Workers
+        if: steps.deploy_process.outputs.authorized == 'true'
+        id: wrangler_deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --name=${{ steps.deploy_process.outputs.worker_name }}
+          workingDirectory: cloudflare_deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Update PR Comment
+        if: steps.deploy_process.outputs.is_pr == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt("${{ steps.deploy_process.outputs.pr_number }}");
+            const authorized = "${{ steps.deploy_process.outputs.authorized }}" === "true";
+            const reason = `${{ steps.deploy_process.outputs.reason }}`;
+            const deploymentUrl = "${{ steps.wrangler_deploy.outputs.deployment-url }}";
+
+            const marker = "<!-- cf-deployment-preview -->";
+            let body = marker + "\n";
+
+            if (authorized) {
+              body += `🚀 PR Preview deployed to: ${deploymentUrl}`;
+            } else {
+              body += reason;
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: `🚀 PR Preview deployed to: ${deploymentUrl}`
             });
+
+            const existingComment = comments.find(c => c.body.includes(marker));
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
