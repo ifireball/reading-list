@@ -1,8 +1,6 @@
 # reading-list
 List of stuff I read.
 
-[View the reading list here](https://ifireball.github.io/reading-list/)
-
 This repository contains a Next.js application that renders a reading list from a collection of YAML files.
 
 ## Data
