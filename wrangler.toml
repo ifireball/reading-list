@@ -1,0 +1,7 @@
+name = "reading-list"
+main = "worker.js"
+compatibility_date = "2024-04-01"
+
+[assets]
+directory = "./out"
+binding = "ASSETS"

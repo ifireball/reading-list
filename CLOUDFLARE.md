@@ -1,20 +1,20 @@
-# Cloudflare Pages Deployment
+# Cloudflare Workers Deployment
 
-This project is deployed to Cloudflare Pages using GitHub Actions.
+This project is deployed as a Cloudflare Worker that serves static assets.
 
 ## Cloudflare Configuration
 
 To set up the deployment, you need to:
 
-1.  **Create a Cloudflare Pages project:**
+1.  **Create a Cloudflare Worker:**
     - Go to the Cloudflare dashboard.
-    - Navigate to **Workers & Pages**.
-    - Click **Create application** > **Pages** > **Connect to Git** (or create a direct upload project named `reading-list`).
-    - Even if you use GitHub Actions, having the project name match `reading-list` in the workflow is important.
+    - Navigate to **Workers & Pages** > **Overview**.
+    - Click **Create application** > **Create Worker**.
+    - Name the worker `reading-list`.
 
 2.  **Generate an API Token:**
     - Go to **My Profile** > **API Tokens**.
-    - Create a token with **Cloudflare Pages: Edit** permissions.
+    - Create a token with **Edit Cloudflare Workers** permissions.
 
 3.  **Get your Account ID:**
     - You can find your Account ID in the Cloudflare dashboard URL or on the overview page of any of your domains/workers.
@@ -28,9 +28,9 @@ Add the following secrets to your GitHub repository (**Settings** > **Secrets an
 
 ## CI/CD Workflow
 
-The deployment is handled by the `.github/workflows/cloudflare.yml` workflow.
+The deployment is split into two workflows to safely support Pull Requests from forks:
 
-- **Production:** Every push to the `main` branch is automatically deployed to production.
-- **Previews:** Every Pull Request targeting `main` generates a preview deployment. Cloudflare will provide a unique URL for each preview, which will be added as a comment or status check in the PR.
+- **Build Workflow (`build.yml`):** Runs on every push and PR. It builds the site and uploads the static files as an artifact.
+- **Deploy Workflow (`deploy.yml`):** Runs only when the Build workflow completes successfully. It runs in the repository's context, giving it access to the Cloudflare secrets needed for deployment.
 
-**Note:** If the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are not set in the GitHub repository, the deployment step will be skipped with a warning. This prevents the CI from failing on forks or before the initial setup is complete.
+Every push to `main` is automatically deployed to production.
