@@ -140,6 +140,10 @@ jobs:
         run: |
           mkdir -p cloudflare_deployment/out
           cp cloudflare/wrangler.toml cloudflare_deployment/
+          if [ "${{ steps.auth_check.outputs.is_pr }}" = "true" ]; then
+            # Remove [[routes]] section for PR previews to use workers.dev URL
+            sed -i '/\[\[routes\]\]/,$d' cloudflare_deployment/wrangler.toml
+          fi
           if [ -f site-build.zip ]; then
             unzip -o site-build.zip -d cloudflare_deployment/out
           fi
@@ -182,79 +186,113 @@ jobs:
             const wranglerOutcome = process.env.WRANGLER_OUTCOME;
             const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const success = authorized && wranglerOutcome === 'success' && !!deploymentUrl;
-            const failure = authorized && (wranglerOutcome === 'failure' || (wranglerOutcome === 'success' && !deploymentUrl));
-            const finalDeploymentUrl = success && !isPR ? 'https://reading-list.korren.org/' : deploymentUrl;
+            console.log(`Deployment details:
+              authorized: ${authorized}
+              targetSha: ${targetSha}
+              isPR: ${isPR}
+              prNumber: ${prNumber}
+              wranglerOutcome: ${wranglerOutcome}
+              deploymentUrl: ${deploymentUrl}
+            `);
+
+            const success = authorized && wranglerOutcome === 'success' && (isPR ? !!deploymentUrl : true);
+            const failure = authorized && !success;
+
+            let finalDeploymentUrl = deploymentUrl;
+            if (success && !isPR) {
+              finalDeploymentUrl = 'https://reading-list.korren.org/';
+            } else if (finalDeploymentUrl) {
+              // Sanitize URL: remove descriptive text and ensure protocol
+              finalDeploymentUrl = finalDeploymentUrl.split(' ')[0].trim();
+              if (finalDeploymentUrl && !finalDeploymentUrl.startsWith('http')) {
+                finalDeploymentUrl = `https://${finalDeploymentUrl}`;
+              }
+            }
 
             if (targetSha) {
               // Update Commit Status
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: targetSha,
-                state: success ? 'success' : (failure ? 'failure' : 'pending'),
-                context: 'Cloudflare Workers Deployment',
-                description: success ? 'Deployed successfully!' : (failure ? 'Deployment failed.' : 'Pending authorization.'),
-                target_url: success ? finalDeploymentUrl : (failure ? logUrl : undefined)
-              });
+              try {
+                await github.rest.repos.createCommitStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: targetSha,
+                  state: success ? 'success' : (failure ? 'failure' : 'pending'),
+                  context: 'Cloudflare Workers Deployment',
+                  description: success ? 'Deployed successfully!' : (failure ? 'Deployment failed.' : 'Pending authorization.'),
+                  target_url: success ? finalDeploymentUrl : (failure ? logUrl : undefined)
+                });
+              } catch (e) {
+                console.error("Error creating commit status:", e);
+              }
             }
 
             if (success) {
               // Create GitHub Deployment
-              const { data: deployment } = await github.rest.repos.createDeployment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: targetSha,
-                environment: isPR ? 'preview' : 'production',
-                auto_merge: false,
-                required_contexts: []
-              });
+              try {
+                const { data: deployment } = await github.rest.repos.createDeployment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: targetSha,
+                  environment: isPR ? 'preview' : 'production',
+                  auto_merge: false,
+                  required_contexts: []
+                });
 
-              await github.rest.repos.createDeploymentStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                deployment_id: deployment.id,
-                state: 'success',
-                environment_url: finalDeploymentUrl,
-                log_url: logUrl
-              });
+                await github.rest.repos.createDeploymentStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.id,
+                  state: 'success',
+                  environment_url: finalDeploymentUrl,
+                  log_url: logUrl
+                });
+              } catch (e) {
+                console.error("Error creating GitHub deployment:", e);
+              }
             }
 
             // Update PR Comment
             if (isPR && prNumber) {
-              const reason = process.env.REASON;
-              const marker = "<!-- cf-deployment-preview -->";
-              let body = marker + "\n";
+              try {
+                const reason = process.env.REASON;
+                const marker = "<!-- cf-deployment-preview -->";
+                let body = marker + "\n";
 
-              if (success) {
-                body += `🚀 PR Preview deployed to: ${deploymentUrl}`;
-              } else if (failure) {
-                body += `❌ Deployment failed. Check [logs](${logUrl}) for details.`;
-              } else {
-                body += reason || "Deployment is pending authorization.";
-              }
+                if (success) {
+                  body += `🚀 PR Preview deployed to: [${finalDeploymentUrl}](${finalDeploymentUrl})`;
+                } else if (failure) {
+                  body += `❌ Deployment failed. Check [logs](${logUrl}) for details.`;
+                  if (wranglerOutcome !== 'success' && wranglerOutcome !== 'failure') {
+                    body += `\n\n**Note:** Deployment was skipped or timed out.`;
+                  }
+                } else {
+                  body += reason || "Deployment is pending authorization.";
+                }
 
-              const { data: comments } = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-              });
-
-              const existingComment = comments.find(c => c.body.includes(marker));
-
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: body
-                });
-              } else {
-                await github.rest.issues.createComment({
+                const { data: comments } = await github.rest.issues.listComments({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: prNumber,
-                  body: body
                 });
+
+                const existingComment = comments.find(c => c.body.includes(marker));
+
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existingComment.id,
+                    body: body
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body: body
+                  });
+                }
+              } catch (e) {
+                console.error("Error updating PR comment:", e);
               }
             }
