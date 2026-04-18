@@ -1,6 +1,9 @@
 name = "reading-list"
 main = "worker.js"
 compatibility_date = "2026-04-18"
+routes = [
+    { pattern = "reading-list.korren.org", custom_domain = true }
+]
 
 [assets]
 directory = "./out"

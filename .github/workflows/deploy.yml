@@ -169,8 +169,12 @@ jobs:
             const targetSha = "${{ steps.auth_check.outputs.target_sha }}";
             const isPR = "${{ steps.auth_check.outputs.is_pr }}" === "true";
             const prNumber = parseInt("${{ steps.auth_check.outputs.pr_number }}");
-            const deploymentUrl = "${{ steps.wrangler_deploy.outputs.deployment-url }}";
+            let deploymentUrl = "${{ steps.wrangler_deploy.outputs.deployment-url }}";
             const success = authorized && !!deploymentUrl;
+
+            if (success && !isPR) {
+              deploymentUrl = "https://reading-list.korren.org/";
+            }
 
             // Update Commit Status
             await github.rest.repos.createCommitStatus({

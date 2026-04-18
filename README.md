@@ -1,6 +1,8 @@
 # reading-list
 List of stuff I read.
 
+The site is available at https://reading-list.korren.org/
+
 This repository contains a Next.js application that renders a reading list from a collection of YAML files.
 
 ## Data
