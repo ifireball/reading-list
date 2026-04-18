@@ -82,14 +82,14 @@ jobs:
               }
             }
 
-            if (authorized) {
+            if (targetSha) {
               await github.rest.repos.createCommitStatus({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 sha: targetSha,
                 state: 'pending',
                 context: 'Cloudflare Workers Deployment',
-                description: 'Deploying to Cloudflare...'
+                description: authorized ? 'Deploying to Cloudflare...' : 'Pending authorization.'
               });
             }
 
@@ -161,31 +161,46 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Create GitHub Deployment and Update Status
+        if: always()
         uses: actions/github-script@v7
+        env:
+          AUTHORIZED: ${{ steps.auth_check.outputs.authorized }}
+          TARGET_SHA: ${{ steps.auth_check.outputs.target_sha }}
+          IS_PR: ${{ steps.auth_check.outputs.is_pr }}
+          PR_NUMBER: ${{ steps.auth_check.outputs.pr_number }}
+          DEPLOYMENT_URL: ${{ steps.wrangler_deploy.outputs.deployment-url }}
+          WRANGLER_OUTCOME: ${{ steps.wrangler_deploy.outcome }}
+          REASON: ${{ steps.auth_check.outputs.reason }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const authorized = "${{ steps.auth_check.outputs.authorized }}" === "true";
-            const targetSha = "${{ steps.auth_check.outputs.target_sha }}";
-            const isPR = "${{ steps.auth_check.outputs.is_pr }}" === "true";
-            const prNumber = parseInt("${{ steps.auth_check.outputs.pr_number }}");
-            let deploymentUrl = "${{ steps.wrangler_deploy.outputs.deployment-url }}";
-            const success = authorized && !!deploymentUrl;
+            const authorized = process.env.AUTHORIZED === "true";
+            const targetSha = process.env.TARGET_SHA;
+            const isPR = process.env.IS_PR === "true";
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            let deploymentUrl = process.env.DEPLOYMENT_URL;
+            const wranglerOutcome = process.env.WRANGLER_OUTCOME;
+            const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const success = authorized && wranglerOutcome === 'success' && !!deploymentUrl;
+            const failure = authorized && (wranglerOutcome === 'failure' || (wranglerOutcome === 'success' && !deploymentUrl));
 
             if (success && !isPR) {
               deploymentUrl = "https://reading-list.korren.org/";
             }
 
-            // Update Commit Status
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: targetSha,
-              state: success ? 'success' : (authorized ? 'failure' : 'pending'),
-              context: 'Cloudflare Workers Deployment',
-              description: success ? 'Deployed successfully!' : (authorized ? 'Deployment failed.' : 'Pending authorization.'),
-              target_url: deploymentUrl || undefined
-            });
+            if (targetSha) {
+              // Update Commit Status
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: targetSha,
+                state: success ? 'success' : (failure ? 'failure' : 'pending'),
+                context: 'Cloudflare Workers Deployment',
+                description: success ? 'Deployed successfully!' : (failure ? 'Deployment failed.' : 'Pending authorization.'),
+                target_url: success ? deploymentUrl : (failure ? logUrl : undefined)
+              });
+            }
 
             if (success) {
               // Create GitHub Deployment
@@ -204,22 +219,22 @@ jobs:
                 deployment_id: deployment.id,
                 state: 'success',
                 environment_url: deploymentUrl,
-                log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+                log_url: logUrl
               });
             }
 
             // Update PR Comment
-            if (isPR) {
-              const reason = `${{ steps.auth_check.outputs.reason }}`;
+            if (isPR && prNumber) {
+              const reason = process.env.REASON;
               const marker = "<!-- cf-deployment-preview -->";
               let body = marker + "\n";
 
               if (success) {
                 body += `🚀 PR Preview deployed to: ${deploymentUrl}`;
-              } else if (authorized) {
-                body += `❌ Deployment failed. Check [logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`;
+              } else if (failure) {
+                body += `❌ Deployment failed. Check [logs](${logUrl}) for details.`;
               } else {
-                body += reason;
+                body += reason || "Deployment is pending authorization.";
               }
 
               const { data: comments } = await github.rest.issues.listComments({
