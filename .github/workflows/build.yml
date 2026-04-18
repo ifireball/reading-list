@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Next.js
+        run: npx next build
+
+      - name: Save PR info
+        if: github.event_name == 'pull_request'
+        run: |
+          echo ${{ github.event.number }} > pr_number.txt
+          echo ${{ github.event.pull_request.head.sha }} > pr_sha.txt
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-build
+          path: out/
+
+      - name: Upload worker artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-src
+          path: cloudflare/worker.js
+
+      - name: Upload PR info
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-info
+          path: |
+            pr_number.txt
+            pr_sha.txt
