@@ -5,3 +5,7 @@ compatibility_date = "2026-04-18"
 [assets]
 directory = "./out"
 binding = "ASSETS"
+
+[[routes]]
+pattern = "reading-list.korren.org"
+custom_domain = true

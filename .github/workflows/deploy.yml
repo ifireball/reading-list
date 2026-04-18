@@ -184,6 +184,7 @@ jobs:
 
             const success = authorized && wranglerOutcome === 'success' && !!deploymentUrl;
             const failure = authorized && (wranglerOutcome === 'failure' || (wranglerOutcome === 'success' && !deploymentUrl));
+            const finalDeploymentUrl = success && !isPR ? 'https://reading-list.korren.org/' : deploymentUrl;
 
             if (targetSha) {
               // Update Commit Status
@@ -194,7 +195,7 @@ jobs:
                 state: success ? 'success' : (failure ? 'failure' : 'pending'),
                 context: 'Cloudflare Workers Deployment',
                 description: success ? 'Deployed successfully!' : (failure ? 'Deployment failed.' : 'Pending authorization.'),
-                target_url: success ? deploymentUrl : (failure ? logUrl : undefined)
+                target_url: success ? finalDeploymentUrl : (failure ? logUrl : undefined)
               });
             }
 
@@ -214,7 +215,7 @@ jobs:
                 repo: context.repo.repo,
                 deployment_id: deployment.id,
                 state: 'success',
-                environment_url: deploymentUrl,
+                environment_url: finalDeploymentUrl,
                 log_url: logUrl
               });
             }
