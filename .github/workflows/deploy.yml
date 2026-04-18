@@ -140,6 +140,10 @@ jobs:
         run: |
           mkdir -p cloudflare_deployment/out
           cp cloudflare/wrangler.toml cloudflare_deployment/
+          if [ "${{ steps.auth_check.outputs.is_pr }}" = "true" ]; then
+            # Remove [[routes]] section for PR previews to use workers.dev URL
+            sed -i '/\[\[routes\]\]/,$d' cloudflare_deployment/wrangler.toml
+          fi
           if [ -f site-build.zip ]; then
             unzip -o site-build.zip -d cloudflare_deployment/out
           fi
@@ -192,7 +196,7 @@ jobs:
             `);
 
             const success = authorized && wranglerOutcome === 'success' && (isPR ? !!deploymentUrl : true);
-            const failure = authorized && (wranglerOutcome === 'failure' || (isPR && wranglerOutcome === 'success' && !deploymentUrl));
+            const failure = authorized && !success;
 
             let finalDeploymentUrl = deploymentUrl;
             if (success && !isPR) {
@@ -249,39 +253,46 @@ jobs:
 
             // Update PR Comment
             if (isPR && prNumber) {
-              const reason = process.env.REASON;
-              const marker = "<!-- cf-deployment-preview -->";
-              let body = marker + "\n";
+              try {
+                const reason = process.env.REASON;
+                const marker = "<!-- cf-deployment-preview -->";
+                let body = marker + "\n";
 
-              if (success) {
-                body += `🚀 PR Preview deployed to: ${deploymentUrl}`;
-              } else if (failure) {
-                body += `❌ Deployment failed. Check [logs](${logUrl}) for details.`;
-              } else {
-                body += reason || "Deployment is pending authorization.";
-              }
+                if (success) {
+                  body += `🚀 PR Preview deployed to: [${finalDeploymentUrl}](${finalDeploymentUrl})`;
+                } else if (failure) {
+                  body += `❌ Deployment failed. Check [logs](${logUrl}) for details.`;
+                  if (wranglerOutcome !== 'success' && wranglerOutcome !== 'failure') {
+                    body += `\n\n**Note:** Deployment was skipped or timed out.`;
+                  }
+                } else {
+                  body += reason || "Deployment is pending authorization.";
+                }
 
-              const { data: comments } = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-              });
-
-              const existingComment = comments.find(c => c.body.includes(marker));
-
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: body
-                });
-              } else {
-                await github.rest.issues.createComment({
+                const { data: comments } = await github.rest.issues.listComments({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: prNumber,
-                  body: body
                 });
+
+                const existingComment = comments.find(c => c.body.includes(marker));
+
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existingComment.id,
+                    body: body
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body: body
+                  });
+                }
+              } catch (e) {
+                console.error("Error updating PR comment:", e);
               }
             }
