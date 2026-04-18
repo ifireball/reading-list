@@ -193,7 +193,17 @@ jobs:
 
             const success = authorized && wranglerOutcome === 'success' && (isPR ? !!deploymentUrl : true);
             const failure = authorized && (wranglerOutcome === 'failure' || (isPR && wranglerOutcome === 'success' && !deploymentUrl));
-            const finalDeploymentUrl = success && !isPR ? 'https://reading-list.korren.org/' : deploymentUrl;
+
+            let finalDeploymentUrl = deploymentUrl;
+            if (success && !isPR) {
+              finalDeploymentUrl = 'https://reading-list.korren.org/';
+            } else if (finalDeploymentUrl) {
+              // Sanitize URL: remove descriptive text and ensure protocol
+              finalDeploymentUrl = finalDeploymentUrl.split(' ')[0].trim();
+              if (finalDeploymentUrl && !finalDeploymentUrl.startsWith('http')) {
+                finalDeploymentUrl = `https://${finalDeploymentUrl}`;
+              }
+            }
 
             if (targetSha) {
               // Update Commit Status
