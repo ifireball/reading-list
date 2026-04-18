@@ -182,42 +182,69 @@ jobs:
             const wranglerOutcome = process.env.WRANGLER_OUTCOME;
             const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const success = authorized && wranglerOutcome === 'success' && !!deploymentUrl;
-            const failure = authorized && (wranglerOutcome === 'failure' || (wranglerOutcome === 'success' && !deploymentUrl));
-            const finalDeploymentUrl = success && !isPR ? 'https://reading-list.korren.org/' : deploymentUrl;
+            console.log(`Deployment details:
+              authorized: ${authorized}
+              targetSha: ${targetSha}
+              isPR: ${isPR}
+              prNumber: ${prNumber}
+              wranglerOutcome: ${wranglerOutcome}
+              deploymentUrl: ${deploymentUrl}
+            `);
+
+            const success = authorized && wranglerOutcome === 'success' && (isPR ? !!deploymentUrl : true);
+            const failure = authorized && (wranglerOutcome === 'failure' || (isPR && wranglerOutcome === 'success' && !deploymentUrl));
+
+            let finalDeploymentUrl = deploymentUrl;
+            if (success && !isPR) {
+              finalDeploymentUrl = 'https://reading-list.korren.org/';
+            } else if (finalDeploymentUrl) {
+              // Sanitize URL: remove descriptive text and ensure protocol
+              finalDeploymentUrl = finalDeploymentUrl.split(' ')[0].trim();
+              if (finalDeploymentUrl && !finalDeploymentUrl.startsWith('http')) {
+                finalDeploymentUrl = `https://${finalDeploymentUrl}`;
+              }
+            }
 
             if (targetSha) {
               // Update Commit Status
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: targetSha,
-                state: success ? 'success' : (failure ? 'failure' : 'pending'),
-                context: 'Cloudflare Workers Deployment',
-                description: success ? 'Deployed successfully!' : (failure ? 'Deployment failed.' : 'Pending authorization.'),
-                target_url: success ? finalDeploymentUrl : (failure ? logUrl : undefined)
-              });
+              try {
+                await github.rest.repos.createCommitStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: targetSha,
+                  state: success ? 'success' : (failure ? 'failure' : 'pending'),
+                  context: 'Cloudflare Workers Deployment',
+                  description: success ? 'Deployed successfully!' : (failure ? 'Deployment failed.' : 'Pending authorization.'),
+                  target_url: success ? finalDeploymentUrl : (failure ? logUrl : undefined)
+                });
+              } catch (e) {
+                console.error("Error creating commit status:", e);
+              }
             }
 
             if (success) {
               // Create GitHub Deployment
-              const { data: deployment } = await github.rest.repos.createDeployment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: targetSha,
-                environment: isPR ? 'preview' : 'production',
-                auto_merge: false,
-                required_contexts: []
-              });
+              try {
+                const { data: deployment } = await github.rest.repos.createDeployment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: targetSha,
+                  environment: isPR ? 'preview' : 'production',
+                  auto_merge: false,
+                  required_contexts: []
+                });
 
-              await github.rest.repos.createDeploymentStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                deployment_id: deployment.id,
-                state: 'success',
-                environment_url: finalDeploymentUrl,
-                log_url: logUrl
-              });
+                await github.rest.repos.createDeploymentStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.id,
+                  state: 'success',
+                  environment_url: finalDeploymentUrl,
+                  log_url: logUrl
+                });
+              } catch (e) {
+                console.error("Error creating GitHub deployment:", e);
+              }
             }
 
             // Update PR Comment
