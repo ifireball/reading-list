@@ -1,9 +1,10 @@
 import css from './columns.module.scss'
 
+const COLUMNS = ["To Read", "Reading", "Read"]
+
 export default function Columns({ data }) {
-    const columns = ["To Read", "Reading", "Read"]
     return <div className={css.columns}>
-        {columns.map((col) => <Column
+        {COLUMNS.map((col) => <Column
             key={col}
             title={col}
             items={data.filter(({status}) => status.toLowerCase() === col.toLowerCase())}
