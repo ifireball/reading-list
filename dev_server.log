@@ -1,0 +1,31 @@
+
+> my-reading-list@1.0.0 dev
+> vite dev
+
+10:18:09 PM [vite] (client) Forced re-optimization of dependencies
+
+  VITE v8.0.10  ready in 1121 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+Loading data from: /app/data
+10:24:20 PM [vite] (client) page reload .svelte-kit/generated/client/nodes/0.js
+10:24:20 PM [vite] (client) page reload .svelte-kit/generated/client/nodes/1.js
+10:24:20 PM [vite] (client) page reload .svelte-kit/generated/client/nodes/2.js
+10:24:20 PM [vite] (client) page reload .svelte-kit/generated/client/app.js
+10:24:20 PM [vite] (client) page reload .svelte-kit/generated/client/matchers.js
+10:24:20 PM [vite] (ssr) page reload .svelte-kit/generated/server/internal.js
+10:24:20 PM [vite] (client) page reload .svelte-kit/generated/root.js
+10:24:20 PM [vite] (ssr) page reload .svelte-kit/generated/root.js
+10:24:20 PM [vite] (ssr) page reload .svelte-kit/generated/root.svelte
+10:24:25 PM [vite] (client) page reload out/index.html
+10:24:25 PM [vite] (client) page reload out/404.html
+10:24:27 PM [vite] (client) page reload .svelte-kit/generated/client/nodes/0.js
+10:24:27 PM [vite] (client) page reload .svelte-kit/generated/client/nodes/1.js
+10:24:27 PM [vite] (client) page reload .svelte-kit/generated/client/nodes/2.js
+10:24:27 PM [vite] (client) page reload .svelte-kit/generated/client/app.js
+10:24:27 PM [vite] (client) page reload .svelte-kit/generated/client/matchers.js
+10:24:27 PM [vite] (ssr) page reload .svelte-kit/generated/server/internal.js
+10:24:27 PM [vite] (client) page reload .svelte-kit/generated/root.js
+10:24:27 PM [vite] (ssr) page reload .svelte-kit/generated/root.js
+10:24:27 PM [vite] (ssr) page reload .svelte-kit/generated/root.svelte
