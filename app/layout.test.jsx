@@ -37,7 +37,7 @@ describe('RootLayout', () => {
   })
 
   it('renders correctly with children', () => {
-    const { container } = render(
+    render(
       <RootLayout>
         <div data-testid="child-element">Child Content</div>
       </RootLayout>
@@ -64,7 +64,7 @@ describe('RootLayout', () => {
     expect(timeElement.tagName.toLowerCase()).toBe('time')
 
     // HTML and lang attributes might be inside container, checking HTML tag
-    const htmlElement = container.querySelector('html')
+    const htmlElement = document.querySelector('html')
     expect(htmlElement).toBeInTheDocument()
     expect(htmlElement).toHaveAttribute('lang', 'en')
   })

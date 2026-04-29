@@ -10,18 +10,21 @@
         "validate": "./bin/validate.js"
     },
     "dependencies": {
-        "@styled-jsx/plugin-sass": "^4.1.0",
-        "ajv": "^8.18.0",
-        "ajv-formats": "^2.1.1",
-        "next": "^16.2.3",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
+        "@styled-jsx/plugin-sass": "^4.1.1",
+        "ajv": "^8.20.0",
+        "ajv-formats": "^3.0.1",
+        "next": "^16.2.4",
+        "react": "^19.2.5",
+        "react-dom": "^19.2.5",
         "remark": "^15.0.1",
         "remark-html": "^16.0.1",
-        "sass": "^1.69.2",
-        "yaml": "^2.3.2"
+        "sass": "^1.99.0",
+        "yaml": "^2.8.3"
     },
     "type": "module",
+    "engines": {
+        "node": ">=24.15.0"
+    },
     "devDependencies": {
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
