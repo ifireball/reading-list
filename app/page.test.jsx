@@ -27,7 +27,7 @@ describe('Page', () => {
     expect(loadData).toHaveBeenCalled()
     expect(Columns).toHaveBeenCalledWith(
       expect.objectContaining({ data: mockData }),
-      expect.anything()
+      undefined
     )
     expect(screen.getByTestId('columns')).toBeInTheDocument()
   })
