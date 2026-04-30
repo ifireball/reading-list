@@ -2,3 +2,5 @@
 node_modules/
 out/
 coverage/
+.svelte-kit/
+build/
