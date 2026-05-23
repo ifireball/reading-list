@@ -33,7 +33,7 @@ export async function validateData() {
     const schemaFile = path.join(dataPath, "schema.json")
     const schema = JSON.parse(await fs.readFile(schemaFile, 'utf-8'))
     const validate = ajv.compile(schema)
-    var allPassed = true
+    let allPassed = true
 
     const yamlFiles = await listYamlFiles()
     const results = await Promise.all(yamlFiles.map(async (file) => {
