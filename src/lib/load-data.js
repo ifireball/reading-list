@@ -48,9 +48,8 @@ export async function validateData() {
     }))
 
     for (const { basename, isValid, errorsText } of results) {
-        console.log(`Validating: ${basename}`)
         if (!isValid) {
-            console.log(`  ${errorsText}`)
+            console.error(`${basename}: ${errorsText}`)
             allPassed = false
         }
     }
