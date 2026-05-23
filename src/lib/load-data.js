@@ -12,7 +12,6 @@ addFormats(ajv)
 const dataPath = path.join(process.cwd(), "data")
 
 async function listYamlFiles() {
-    console.log(`Loading data from: ${dataPath}`)
     const filesInData = await fs.readdir(dataPath)
     return filesInData
         .filter((f) => f.endsWith('.yaml'))
