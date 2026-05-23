@@ -38,7 +38,7 @@ describe('load-data', () => {
 title: The Book
 url: http://example.com/1
 status: To Read
-notes: This is **bold** text
+notes: This is **bold** text and a <script>alert(1)</script> tag
 `)
         }
         if (filePath.endsWith('book2.yaml')) {
@@ -60,6 +60,7 @@ notes: Just a note
       expect(book1.url).toBe('http://example.com/1')
       expect(book1.status).toBe('To Read')
       expect(book1.notes).toContain('<strong>bold</strong>')
+      expect(book1.notes).not.toContain('<script>')
 
       const book2 = data.find(item => item.key === 'book2.yaml')
       expect(book2.title).toBe('Second Book')

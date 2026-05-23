@@ -7,7 +7,7 @@ import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 
 const ajv = new Ajv({verbose: true, allErrors: true})
-const remarkProcessor = remark().use(html)
+const remarkProcessor = remark().use(html, { sanitize: true })
 addFormats(ajv)
 const dataPath = path.join(process.cwd(), "data")
 
