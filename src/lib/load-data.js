@@ -7,6 +7,7 @@ import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 
 const ajv = new Ajv({verbose: true, allErrors: true})
+const remarkProcessor = remark().use(html)
 addFormats(ajv)
 const dataPath = path.join(process.cwd(), "data")
 
@@ -23,7 +24,7 @@ export async function loadData() {
     const data = await Promise.all(yamlFiles.map(async (file) => {
         const item = YAML.parse(await fs.readFile(file, 'utf-8'))
         item.key = path.basename(file)
-        item.notes = (await remark().use(html).process(item.notes)).toString()
+        item.notes = (await remarkProcessor.process(item.notes)).toString()
         return item
     }))
     return data
