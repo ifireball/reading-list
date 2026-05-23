@@ -12,8 +12,14 @@ export function sanitizeUrl(url) {
 
     if (sanitized === '') return '';
 
-    // Allow relative paths
-    if (sanitized.startsWith('/') || sanitized.startsWith('./') || sanitized.startsWith('../')) {
+    // Allow relative paths, anchors, and query-only URLs
+    if (
+        sanitized.startsWith('/') ||
+        sanitized.startsWith('./') ||
+        sanitized.startsWith('../') ||
+        sanitized.startsWith('#') ||
+        sanitized.startsWith('?')
+    ) {
         return sanitized;
     }
 
