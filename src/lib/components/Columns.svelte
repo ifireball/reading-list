@@ -3,13 +3,22 @@
     export let data;
 
     const COLUMNS = ["To Read", "Reading", "Read"];
+
+    $: groupedData = data.reduce((acc, item) => {
+        const status = item.status.toLowerCase();
+        if (!acc[status]) {
+            acc[status] = [];
+        }
+        acc[status].push(item);
+        return acc;
+    }, {});
 </script>
 
 <div class="columns">
     {#each COLUMNS as col (col)}
         <Column
             title={col}
-            items={data.filter(({status}) => status.toLowerCase() === col.toLowerCase())}
+            items={groupedData[col.toLowerCase()] || []}
         />
     {/each}
 </div>
